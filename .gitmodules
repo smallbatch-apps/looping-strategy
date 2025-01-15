@@ -7,3 +7,6 @@
 [submodule "lib/aave-v3-origin"]
 	path = lib/aave-v3-origin
 	url = https://github.com/aave-dao/aave-v3-origin
+[submodule "lib/yieldnest-vault"]
+	path = lib/yieldnest-vault
+	url = https://github.com/smallbatch-apps/yieldnest-vault
