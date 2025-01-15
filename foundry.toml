@@ -5,6 +5,9 @@ libs = ["lib"]
 remappings = [
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     'forge-std/=lib/forge-std/src/',
-    '@aave/=lib/aave-v3-origin/src/core/'
+    '@aave/=lib/aave-v3-origin/src/core/',
+    '@yieldnest-vault/contracts=lib/yieldnest-vault/src/',
+    'src/=lib/yieldnest-vault/src/',
+    'lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts/contracts/'
 ]
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
