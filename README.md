@@ -1,66 +1,68 @@
-## Foundry
+# Looping Strategy
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A smart contract strategy for leveraging ETH positions on Aave through recursive borrowing and lending.
 
-Foundry consists of:
+## Overview
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+This strategy automatically manages leveraged ETH positions by:
 
-## Documentation
+- Depositing ETH as collateral
+- Borrowing against that collateral
+- Re-depositing borrowed funds
+- Monitoring and rebalancing positions to maintain target leverage ratios
 
-https://book.getfoundry.sh/
+## Key Features
 
-## Usage
+- Automated leverage management
+- Safety-first approach with multiple risk thresholds
+- Automatic rebalancing when positions drift from targets
+- Emergency deleveraging during market stress
 
-### Build
+## Architecture
 
-```shell
-$ forge build
-```
+### Core Components
 
-### Test
+- `LoopingStrategy.sol`: Main strategy contract
+- Risk thresholds:
+  - MAX_LTV: 75% (Target leverage ratio)
+  - WARNING: 80% (Begin unwinding)
+  - EMERGENCY: 95% (Aggressive deleveraging)
 
-```shell
-$ forge test
-```
+A public function `checkAndRebalance` has been implemented to allow for rebalancing and error adjudment. This is not done on chain but may be done with a keeper such as chainlink's keeper network or Gelato network.
 
-### Format
+### Key Functions
 
-```shell
-$ forge fmt
-```
+- `deposit()`: Enter leveraged position
+- `withdraw()`: Exit position
+- Emergency functions for risk management
 
-### Gas Snapshots
+## Setup
 
-```shell
-$ forge snapshot
-```
+This is a Foundry project, so it requires the standard Foundry environment to be [installed](https://book.getfoundry.sh/getting-started/installation). Assuming that is all done, check out this repo with `git clone` and run `forge install` to add the dependencies. Note that a working `foundry.toml` is already included in the repo, and there are no environment variables or other configuration files required.
 
-### Anvil
+## Testing
 
-```shell
-$ anvil
-```
+Comprehensive test suite covering:
 
-### Deploy
+- Deposit/withdraw flows
+- Leverage mechanics
+- Rebalancing scenarios
+- Emergency procedures
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+To run the tests simply use `forge test`.
 
-### Cast
+## Project Considerations
 
-```shell
-$ cast <subcommand>
-```
+### Vault
 
-### Help
+It was decided to use the YieldNest Vault implementation to manage the strategy's assets. This provides an EIP-4626 tokenised vault for managing shares of the strategy's assets. A fork fo the Vault is included as a dependency and several of its mock functions used in testing. There was significant challenge to instantiating the vault, and these ended up requiring explicitly preventing the vault's constructor disabling initializers.
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+### Testing
+
+The tests were written with a focus on testing the strategy's core functionality, and doesn't test things like vault interaction or implementation details. Similarly there is only minimal testing of lending pool interaction and these are mocked in the tests. The coverage profile is supposed to exclude the mocks but does not, due to an apparent issue in Foundry.
+
+Getting rough coverage is easy, just use `forge coverage`. More detailed coverage requires the installation of `lcov`. After that run `forge coverage --report lcov && genhtml lcov.info --ignore-errors category --output-directory coverage 2>/dev/null`. This will generate a `coverage` directory with an `index.html` file that can be opened in a browser to view the coverage report.
+
+### Misc
+
+I got lost in a nest of Vault dependencies and instantiation issues. There is another reference implementation of as strategy, the [Kernel LRT listed here](https://github.com/yieldnest/yieldnest-kernel-lrt). This uses a very different pattern and seems to not have the same issues. In retrospect I could have maybe made it more like this. Instead I took one logical step after another and ended up with a working strategy that is probably overly complex.

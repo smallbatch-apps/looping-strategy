@@ -3,11 +3,28 @@ src = "src"
 out = "out"
 libs = ["lib"]
 remappings = [
+    # Package-style imports
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     'forge-std/=lib/forge-std/src/',
     '@aave/=lib/aave-v3-origin/src/core/',
     '@yieldnest-vault/contracts=lib/yieldnest-vault/src/',
-    'src/=lib/yieldnest-vault/src/',
-    'lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts/contracts/'
+    
+    # Regular OpenZeppelin - both paths
+    'lib/yieldnest-vault/lib/openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/',
+    'lib/openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/',
+    
+    # Upgradeable OpenZeppelin - both paths
+    'lib/yieldnest-vault/lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts-upgradeable/contracts/',
+    'lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts-upgradeable/contracts/',
 ]
+
+[profile.coverage]
+exclude_paths = [
+    "test/mocks/*.sol",
+    "test/utils/*.sol"
+]
+exclude_contracts = [
+    "MockPool",
+]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
