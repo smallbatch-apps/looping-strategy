@@ -66,3 +66,7 @@ Getting rough coverage is easy, just use `forge coverage`. More detailed coverag
 ### Misc
 
 I got lost in a nest of Vault dependencies and instantiation issues. There is another reference implementation of as strategy, the [Kernel LRT listed here](https://github.com/yieldnest/yieldnest-kernel-lrt). This uses a very different pattern and seems to not have the same issues. In retrospect I could have maybe made it more like this. Instead I took one logical step after another and ended up with a working strategy that is probably overly complex.
+
+### Final update - Jan 21
+
+I've added a simpler strategy that uses the StrategyStorage pattern and is closer to production ready, with better commenting and organisation. The intention behind this was to better extend the Vault core and make a simpler instantiation process, as initializers are no longer required. This is in `LoopingSimpleStrategy.sol`.
