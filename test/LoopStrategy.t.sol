@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {LoopingStrategy} from "../src/LoopStrategy.sol";
+import {LoopingStrategy} from "../src/LoopingStrategy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {MockProvider} from "lib/yieldnest-vault/test/unit/mocks/MockProvider.sol";
@@ -33,6 +33,7 @@ contract LoopStrategyTest is Test {
         weth = IERC20(address(new MockERC20("Wrapped Ether", "WETH")));
         // Pre-fund the mock pool with enough tokens
         deal(address(weth), address(lendingPool), 100 ether);
+
         // Deploy strategy
         LoopingStrategy implementation = new LoopingStrategy(
             address(lendingPool),
