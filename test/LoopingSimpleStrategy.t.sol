@@ -15,6 +15,7 @@ contract LoopSimpleStrategyTest is Test {
     LoopingSimpleStrategy public strategy;
     IPool public lendingPool;
     IERC20 public weth;
+    IERC20 public steth;
 
     // Create users to assign roles to
     address deployer = makeAddr("deployer");
@@ -30,7 +31,9 @@ contract LoopSimpleStrategyTest is Test {
             address(mockPool)
         );
 
-        weth = IERC20(address(new MockERC20("Wrapped Ether", "WETH")));
+        weth = new MockERC20("Wrapped Ether", "WETH");
+        steth = new MockERC20("Lido Staked Ether", "stETH");
+
         lendingPool = IPool(address(mockPool));
 
         vm.startPrank(deployer);
@@ -58,7 +61,7 @@ contract LoopSimpleStrategyTest is Test {
 
         strategy.setProvider(address(mockProvider));
         strategy.setLendingPool(address(lendingPool));
-        strategy.setEthDerivative(address(weth));
+        strategy.setEthDerivative(address(steth));
         strategy.setSwapAdapter(address(mockSwapAdapter));
         strategy.setSwapRouter(address(0));
         strategy.addAsset(address(weth), true);
@@ -70,6 +73,7 @@ contract LoopSimpleStrategyTest is Test {
         // finally, assign some currency to the pool and user
         deal(address(weth), user, 100 ether);
         deal(address(weth), address(lendingPool), 100 ether);
+        deal(address(steth), address(lendingPool), 100 ether);
     }
 
     function test_Deposit_BasicFlow() public {
