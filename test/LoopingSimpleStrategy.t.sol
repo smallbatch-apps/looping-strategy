@@ -8,6 +8,7 @@ import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {MockProvider} from "lib/yieldnest-vault/test/unit/mocks/MockProvider.sol";
 import {MockERC20} from "lib/yieldnest-vault/test/unit/mocks/MockERC20.sol";
 import {MockPool} from "./mocks/MockPool.sol";
+import {MockSwapAdapter} from "./mocks/MockSwapAdapter.sol";
 import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 
 contract LoopSimpleStrategyTest is Test {
@@ -25,6 +26,9 @@ contract LoopSimpleStrategyTest is Test {
     function setUp() public {
         // create mocks for pool and rate provider
         MockPool mockPool = new MockPool(IPoolAddressesProvider(address(0)));
+        MockSwapAdapter mockSwapAdapter = new MockSwapAdapter(
+            address(mockPool)
+        );
 
         weth = IERC20(address(new MockERC20("Wrapped Ether", "WETH")));
         lendingPool = IPool(address(mockPool));
@@ -55,6 +59,8 @@ contract LoopSimpleStrategyTest is Test {
         strategy.setProvider(address(mockProvider));
         strategy.setLendingPool(address(lendingPool));
         strategy.setEthDerivative(address(weth));
+        strategy.setSwapAdapter(address(mockSwapAdapter));
+        strategy.setSwapRouter(address(0));
         strategy.addAsset(address(weth), true);
         vm.stopPrank();
 

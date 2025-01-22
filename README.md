@@ -70,3 +70,7 @@ I got lost in a nest of Vault dependencies and instantiation issues. There is an
 ### Final update - Jan 21
 
 I've added a simpler strategy that uses the StrategyStorage pattern and is closer to production ready, with better commenting and organisation. The intention behind this was to better extend the Vault core and make a simpler instantiation process, as initializers are no longer required. This is in `LoopingSimpleStrategy.sol`.
+
+### Second final update - Jan 22
+
+In response to feedback, made more reasl-world investment approach, taking in WETH and staking to stETH. This now runs swapAndSupply on Aave Periphery, continually borrowing WETH and staking to stETH.
