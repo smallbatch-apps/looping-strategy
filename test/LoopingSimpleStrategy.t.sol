@@ -4,11 +4,11 @@ pragma solidity ^0.8.28;
 import {Test} from "forge-std/Test.sol";
 import {LoopingSimpleStrategy} from "../src/LoopingSimpleStrategy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {MockProvider} from "lib/yieldnest-vault/test/unit/mocks/MockProvider.sol";
 import {MockERC20} from "lib/yieldnest-vault/test/unit/mocks/MockERC20.sol";
 import {MockPool} from "./mocks/MockPool.sol";
-import {IPoolAddressesProvider} from "@aave/contracts/interfaces/IPoolAddressesProvider.sol";
+import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 
 contract LoopSimpleStrategyTest is Test {
     LoopingSimpleStrategy public strategy;

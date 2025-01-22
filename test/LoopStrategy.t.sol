@@ -4,13 +4,13 @@ pragma solidity ^0.8.28;
 import {Test, console2} from "forge-std/Test.sol";
 import {LoopingStrategy} from "../src/LoopingStrategy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {MockProvider} from "lib/yieldnest-vault/test/unit/mocks/MockProvider.sol";
 import {MockERC20} from "lib/yieldnest-vault/test/unit/mocks/MockERC20.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {MockPool} from "./mocks/MockPool.sol";
 
-import {IPoolAddressesProvider} from "@aave/contracts/interfaces/IPoolAddressesProvider.sol";
+import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 
 contract LoopStrategyTest is Test {
     LoopingStrategy public strategy;

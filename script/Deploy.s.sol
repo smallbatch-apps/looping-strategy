@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 import {LoopingStrategy} from "../src/LoopingStrategy.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
-import {IPriceOracleGetter} from "@aave/contracts/interfaces/IPriceOracleGetter.sol";
+import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
+import {IPriceOracleGetter} from "@aave/core-v3/contracts/interfaces/IPriceOracleGetter.sol";
 import {console2} from "forge-std/console2.sol";
 
 contract DeployLoopingStrategy is Script {

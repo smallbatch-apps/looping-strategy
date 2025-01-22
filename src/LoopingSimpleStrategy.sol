@@ -3,12 +3,16 @@ pragma solidity ^0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/interfaces/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {IPool} from "@aave/core-v3/contracts/interfaces/IPool.sol";
 import {Vault} from "@yieldnest-vault/contracts/Vault.sol";
 
-import {ParaSwapLiquiditySwapAdapter} from "@aave-paraswap/ParaSwapLiquiditySwapAdapter.sol";
-import {IParaSwapAugustus} from "aave-v3-periphery/contracts/adapters/paraswap/ParaSwapLiquiditySwapAdapter.sol";
-import {BaseParaSwapAdapter} from "aave-v3-periphery/contracts/adapters/paraswap/BaseParaSwapAdapter.sol";
+// import {ParaSwapLiquiditySwapAdapter} from "@aave-periphery/adapters/paraswap/ParaSwapLiquiditySwapAdapter.sol";
+// import {IParaSwapAdapter} from "./interfaces/IParaSwapAdapter.sol";
+import {IParaSwapAdapter, PermitSignature} from "./interfaces/IParaSwapAdapter.sol";
+
+// import {IParaSwapAugustus} from "@aave-periphery/adapters/paraswap/ParaSwapLiquiditySwapAdapter.sol";
+
+// import {BaseParaSwapAdapter} from "@aave-periphery/adapters/paraswap/BaseParaSwapAdapter.sol";
 
 contract LoopingSimpleStrategy is Vault {
     using SafeERC20 for IERC20;
@@ -89,17 +93,13 @@ contract LoopingSimpleStrategy is Vault {
      * @notice Returns swap adapter.
      * @return swapAdapter The swap adapter implementation
      */
-    function getSwapAdapter()
-        public
-        view
-        returns (ParaSwapLiquiditySwapAdapter)
-    {
-        return ParaSwapLiquiditySwapAdapter(_getStrategyStorage().swapAdapter);
+    function getSwapAdapter() public view returns (IParaSwapAdapter) {
+        return IParaSwapAdapter(_getStrategyStorage().swapAdapter);
     }
 
     /**
      * @notice Sets the currency token - an eth derivative.
-     * @param ethDerivative The address of the currency token.
+     * @param swapAdapter The address of the currency token.
      */
     function setSwapAdapter(
         address swapAdapter
@@ -123,7 +123,7 @@ contract LoopingSimpleStrategy is Vault {
      * @param swapData The encoded data for the swap.
      */
     function setSwapData(
-        bytes swapData
+        bytes calldata swapData
     ) external onlyRole(PROVIDER_MANAGER_ROLE) {
         StrategyStorage storage strategyStorage = _getStrategyStorage();
         strategyStorage.swapData = swapData;
@@ -135,8 +135,8 @@ contract LoopingSimpleStrategy is Vault {
      * @notice Returns swap data - routing and pool information.
      * @return The bytes of the swap data
      */
-    function getSwapRouter() public view returns (IParaSwapAugustus) {
-        return IParaSwapAugustus(_getStrategyStorage().swapRouter);
+    function getSwapRouter() public view returns (address) {
+        return _getStrategyStorage().swapRouter;
     }
 
     /**
@@ -154,7 +154,15 @@ contract LoopingSimpleStrategy is Vault {
 
     /**
      * @notice The threshold at which a warning is issued
-     * @return warningLtv Percentage of the protocol's max leverage in bps
+     * @return Percentage of the protocol's max leverage in bps
+     */
+    function getMaxLtv() public view returns (uint256) {
+        return _getStrategyStorage().maxLtv;
+    }
+
+    /**
+     * @notice The threshold at which a warning is issued
+     * @return Percentage of the protocol's max leverage in bps
      */
     function getWarningLtv() public view returns (uint256) {
         return _getStrategyStorage().warningLtv;
@@ -162,7 +170,7 @@ contract LoopingSimpleStrategy is Vault {
 
     /**
      * @notice The threshold at which an emergency is issued
-     * @return emergencyLtv Percentage of the protocol's max leverage in bps
+     * @return Percentage of the protocol's max leverage in bps
      */
     function getEmergencyLtv() public view returns (uint256) {
         return _getStrategyStorage().emergencyLtv;
@@ -208,6 +216,8 @@ contract LoopingSimpleStrategy is Vault {
     event SetLendingPool(address lendingPool);
     event SetEthDerivative(address ethDerivative);
     event SetSwapAdapter(address swapAdapter);
+    event SetSwapData(bytes swapData);
+    event SetSwapRouter(address swapRouter);
 
     // ==== ERRORS ====
     error InvalidLtv(string message);
@@ -421,8 +431,7 @@ contract LoopingSimpleStrategy is Vault {
 
     function _loopDeposit(uint256 initialAmount) internal {
         IPool lendingPool = getLendingPool();
-        ParaSwapLiquiditySwapAdapter swapAdapter = getSwapAdapter();
-        address targetAsset = getEthDerivative(); // stETH or whatever target investment is
+        IParaSwapAdapter swapAdapter = getSwapAdapter();
 
         // Approve first
         IERC20(asset()).approve(address(lendingPool), type(uint256).max);
@@ -450,16 +459,15 @@ contract LoopingSimpleStrategy is Vault {
             IERC20(asset()).approve(address(lendingPool), borrowAmount);
 
             lendingPool.deposit(asset(), borrowAmount, address(this), 0);
-            BaseParaSwapAdapter.PermitSignature memory emptyPermit;
-
+            PermitSignature memory emptyPermit;
             swapAdapter.swapAndSupply(
                 IERC20(asset()), // This is our initial asset - typically WETH
-                IERC20(targetAsset), // our staking target asset
+                getEthDerivative(), // our staking target asset
                 borrowAmount, // amount to swap
                 (borrowAmount * 99) / 100, // 1% slippage allowance
                 0, // no balance offset
                 getSwapData(),
-                getSwapRouter(),
+                address(getSwapRouter()),
                 emptyPermit // no permit needed
             );
 

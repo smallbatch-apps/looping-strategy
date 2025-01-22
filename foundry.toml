@@ -3,20 +3,28 @@ src = "src"
 out = "out"
 libs = ["lib"]
 remappings = [
+    # deal with aave core/origin issue
+    # '@aave/core-v3/contracts/dependencies/openzeppelin/contracts/=lib/aave-v3-origin/src/core/contracts/dependencies/openzeppelin/contracts/',
+
     # Package-style imports
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     'forge-std/=lib/forge-std/src/',
+    '@aave/core-v3/=lib/aave-v3-origin/src/core/',
     '@aave/=lib/aave-v3-origin/src/core/',
     '@yieldnest-vault/contracts=lib/yieldnest-vault/src/',
-    '@aave-paraswap/=lib/aave-v3-periphery/contracts/adapters/paraswap/',
+    '@aave-paraswap/=lib/aave-v3-periphery/contracts/',
+    '@aave-periphery/=lib/aave-v3-periphery/contracts/',
     
     # Regular OpenZeppelin - both paths
     'lib/yieldnest-vault/lib/openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/',
     'lib/openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/',
+     'lib/aave-v3-periphery/lib/openzeppelin-contracts/=lib/openzeppelin-contracts/',
+    
     
     # Upgradeable OpenZeppelin - both paths
     'lib/yieldnest-vault/lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts-upgradeable/contracts/',
     'lib/openzeppelin-contracts-upgradeable/contracts/=lib/openzeppelin-contracts-upgradeable/contracts/',
+    'lib/aave-v3-periphery/lib/openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/',
 ]
 
 [profile.coverage]

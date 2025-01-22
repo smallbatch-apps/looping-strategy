@@ -2,9 +2,9 @@
 pragma solidity ^0.8.28;
 
 // import {Pool} from "@aave/contracts/protocol/pool/Pool.sol";
-import {Pool} from "@aave/contracts/protocol/pool/Pool.sol";
-import {IPoolAddressesProvider} from "@aave/contracts/interfaces/IPoolAddressesProvider.sol";
-import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
+import {Pool} from "@aave/core-v3/contracts/protocol/pool/Pool.sol";
+import {IPoolAddressesProvider} from "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
+import {DataTypes} from "@aave/core-v3/contracts/protocol/libraries/types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {console2} from "forge-std/console2.sol";
