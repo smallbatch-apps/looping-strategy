@@ -8,6 +8,7 @@ remappings = [
     'forge-std/=lib/forge-std/src/',
     '@aave/=lib/aave-v3-origin/src/core/',
     '@yieldnest-vault/contracts=lib/yieldnest-vault/src/',
+    '@aave-paraswap/=lib/aave-v3-periphery/contracts/adapters/paraswap/',
     
     # Regular OpenZeppelin - both paths
     'lib/yieldnest-vault/lib/openzeppelin-contracts/contracts/=lib/openzeppelin-contracts/contracts/',

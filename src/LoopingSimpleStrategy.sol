@@ -6,12 +6,19 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {Vault} from "@yieldnest-vault/contracts/Vault.sol";
 
+import {ParaSwapLiquiditySwapAdapter} from "@aave-paraswap/ParaSwapLiquiditySwapAdapter.sol";
+import {IParaSwapAugustus} from "aave-v3-periphery/contracts/adapters/paraswap/ParaSwapLiquiditySwapAdapter.sol";
+import {BaseParaSwapAdapter} from "aave-v3-periphery/contracts/adapters/paraswap/BaseParaSwapAdapter.sol";
+
 contract LoopingSimpleStrategy is Vault {
     using SafeERC20 for IERC20;
 
     struct StrategyStorage {
         address lendingPool;
         address ethDerivative;
+        address swapAdapter;
+        address swapRouter;
+        bytes swapData;
         uint256 maxLtv;
         uint256 warningLtv;
         uint256 emergencyLtv;
@@ -59,7 +66,7 @@ contract LoopingSimpleStrategy is Vault {
      * @notice Returns the currency token - an eth derivative.
      * @return ethDerivative The sync withdraw flag.
      */
-    function getEthDerivative() public view returns (IERC20 ethDerivative) {
+    function getEthDerivative() public view returns (IERC20) {
         return IERC20(_getStrategyStorage().ethDerivative);
     }
 
@@ -79,18 +86,77 @@ contract LoopingSimpleStrategy is Vault {
     }
 
     /**
-     * @notice Returns the max leverage threshold.
-     * @return maxLtv The maximum levaage as a percentage of the protocol's max leverage in bps
+     * @notice Returns swap adapter.
+     * @return swapAdapter The swap adapter implementation
      */
-    function getMaxLtv() public view returns (uint256 maxLtv) {
-        return _getStrategyStorage().maxLtv;
+    function getSwapAdapter()
+        public
+        view
+        returns (ParaSwapLiquiditySwapAdapter)
+    {
+        return ParaSwapLiquiditySwapAdapter(_getStrategyStorage().swapAdapter);
+    }
+
+    /**
+     * @notice Sets the currency token - an eth derivative.
+     * @param ethDerivative The address of the currency token.
+     */
+    function setSwapAdapter(
+        address swapAdapter
+    ) external onlyRole(PROVIDER_MANAGER_ROLE) {
+        StrategyStorage storage strategyStorage = _getStrategyStorage();
+        strategyStorage.swapAdapter = swapAdapter;
+
+        emit SetSwapAdapter(swapAdapter);
+    }
+
+    /**
+     * @notice Returns swap data - routing and pool information.
+     * @return The bytes of the swap data
+     */
+    function getSwapData() public view returns (bytes memory) {
+        return _getStrategyStorage().swapData;
+    }
+
+    /**
+     * @notice Sets the swap data - routing and pool information.
+     * @param swapData The encoded data for the swap.
+     */
+    function setSwapData(
+        bytes swapData
+    ) external onlyRole(PROVIDER_MANAGER_ROLE) {
+        StrategyStorage storage strategyStorage = _getStrategyStorage();
+        strategyStorage.swapData = swapData;
+
+        emit SetSwapData(swapData);
+    }
+
+    /**
+     * @notice Returns swap data - routing and pool information.
+     * @return The bytes of the swap data
+     */
+    function getSwapRouter() public view returns (IParaSwapAugustus) {
+        return IParaSwapAugustus(_getStrategyStorage().swapRouter);
+    }
+
+    /**
+     * @notice Sets the swap router implementation
+     * @param swapRouter The router to perform the swap.
+     */
+    function setSwapRouter(
+        address swapRouter
+    ) external onlyRole(PROVIDER_MANAGER_ROLE) {
+        StrategyStorage storage strategyStorage = _getStrategyStorage();
+        strategyStorage.swapRouter = swapRouter;
+
+        emit SetSwapRouter(swapRouter);
     }
 
     /**
      * @notice The threshold at which a warning is issued
      * @return warningLtv Percentage of the protocol's max leverage in bps
      */
-    function getWarningLtv() public view returns (uint256 warningLtv) {
+    function getWarningLtv() public view returns (uint256) {
         return _getStrategyStorage().warningLtv;
     }
 
@@ -98,7 +164,7 @@ contract LoopingSimpleStrategy is Vault {
      * @notice The threshold at which an emergency is issued
      * @return emergencyLtv Percentage of the protocol's max leverage in bps
      */
-    function getEmergencyLtv() public view returns (uint256 emergencyLtv) {
+    function getEmergencyLtv() public view returns (uint256) {
         return _getStrategyStorage().emergencyLtv;
     }
 
@@ -141,6 +207,7 @@ contract LoopingSimpleStrategy is Vault {
     event SetLtv(uint256 maxLtv, uint256 warningLtv, uint256 emergencyLtv);
     event SetLendingPool(address lendingPool);
     event SetEthDerivative(address ethDerivative);
+    event SetSwapAdapter(address swapAdapter);
 
     // ==== ERRORS ====
     error InvalidLtv(string message);
@@ -354,9 +421,11 @@ contract LoopingSimpleStrategy is Vault {
 
     function _loopDeposit(uint256 initialAmount) internal {
         IPool lendingPool = getLendingPool();
+        ParaSwapLiquiditySwapAdapter swapAdapter = getSwapAdapter();
+        address targetAsset = getEthDerivative(); // stETH or whatever target investment is
+
         // Approve first
         IERC20(asset()).approve(address(lendingPool), type(uint256).max);
-
         lendingPool.deposit(asset(), initialAmount, address(this), 0);
 
         uint256 currentAmount = initialAmount;
@@ -379,7 +448,20 @@ contract LoopingSimpleStrategy is Vault {
 
             // Approve and deposit
             IERC20(asset()).approve(address(lendingPool), borrowAmount);
+
             lendingPool.deposit(asset(), borrowAmount, address(this), 0);
+            BaseParaSwapAdapter.PermitSignature memory emptyPermit;
+
+            swapAdapter.swapAndSupply(
+                IERC20(asset()), // This is our initial asset - typically WETH
+                IERC20(targetAsset), // our staking target asset
+                borrowAmount, // amount to swap
+                (borrowAmount * 99) / 100, // 1% slippage allowance
+                0, // no balance offset
+                getSwapData(),
+                getSwapRouter(),
+                emptyPermit // no permit needed
+            );
 
             currentAmount = borrowAmount;
         }
